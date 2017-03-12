@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>网贷之家</title>
+	<style type="text/css">
+		body {
+			margin: 0;
+			padding:0;
+			/*background-color: #f0f3f4;*/
+		}
+		#wrap {
+			margin: 50px auto 20px auto;
+			width: 800px;
+		}
+		#query {
+            padding: 15px;
+            border:1px solid #edf1f2;
+            border-radius: 8px;
+            background-color: #f6f8f8;
+            overflow: hidden;
+            zoom: 1;  /* needed in IE up to version 7, or set width or height to trigger "hasLayout" */
+        }
+        #query-form {
+        }
+        #query-form input{
+            margin-right: 20px;
+            padding: 6px 10px;
+            font-size: 14px;
+            color: #555;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+        }
+        #query-form #search {
+            cursor: pointer;
+            color: #ffffff;
+            background-color: #19a9d5;
+            border-color: #189ec8;
+        }
+        #query-form #download {
+            cursor: pointer;
+            color: #ffffff;
+            background-color: #7266ba;
+            border-color: #7266ba;
+            visibility: hidden;
+        }
+        #query-form #search:hover,#query-form #download:hover {
+            opacity: 0.7;
+            filter: alpha(opacity=70);  /* IE*/
+            zoom: 1;  /* needed in IE up to version 7, or set width or height to trigger "hasLayout" */
+            color: #000;
+        }
+        #res-data {
+            margin: 20px 0;
+        }
+        #res-data table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #res-data table td,#res-data table th {
+            border: solid #ccc 1px;
+            padding: 6px;
+            text-align: center;
+        }
+        #res-data table th {
+            background-color: #f6f8f8;
+            color: #000;
+        }
+        .odd{
+  			background-color: #f6f8f8;
+  		}
+        .even{
+  			background-color: #fff;
+  		}
+	</style>
+</head>
+<body>
+<div id="wrap">
+	<div id="query">
+		<form id="query-form">
+			<label>渠道码：</label>
+			<input type="text" name="" id="channel-name"/>
+			<label>待查投资日期：</label>
+			<input type="text" name="" id="invest-date"/>
+            <input type="button" name="search" value="搜索" id="search">
+            <input type="button" value="下载" id="download">
+		</form>
+
+	</div>
+	<div id="res-data">
+        <table id="table">
+            <thead>
+            <tr>
+                <th>名称</th>
+                <th>内容</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>手机号</td>
+                <td id="phone">1390000</td>
+            </tr>
+            <tr>
+                <td>注册日期</td>
+                <td id="register-date">20160902</td>
+            </tr>
+            <tr>
+                <td>投资日期</td>
+                <td id="trans-date">20160902</td>
+            </tr>
+            <tr>
+                <td>标的名称</td>
+                <td id="project-name">1手动阀手动阀</td>
+            </tr>
+            <tr>
+                <td>标的期限</td>
+                <td id="loan-term">20101001</td>
+            </tr>
+            <tr>
+                <td>收益率</td>
+                <td id="loan-rate">3%</td>
+            </tr>
+            <tr>
+                <td>投资金额</td>
+                <td id="amount">12000</td>
+            </tr>
+            </tbody>
+        </table>
+	</div>
+</div>
+	
+</body>
+<script src="node_modules/jquery/dist/jquery.min.js"></script>
+<script src="js/Blob.js"></script>
+<script src="js/FileSaver.js"></script>
+<script src="js/tableExport.js"></script>
+<script src="node_modules/crypto-js/crypto-js.js"></script>
+<script src="node_modules/crypto-js/aes.js"></script>
+<script>
+	$(function () {
+
+        var keyStr = '1234567812345678'; // 一般key为一个字符串
+        var key = CryptoJS.enc.Utf8.parse(keyStr);
+
+
+        /*加密*/
+        /*var encryptedData = CryptoJS.AES.encrypt(plaintText, key, {
+            iv:key,
+            mode: CryptoJS.mode.CBC,
+            padding: CryptoJS.pad.Pkcs7
+        });
+        var encryptedBase64Str = encryptedData.toString();
+        console.log(encryptedBase64Str);*/
+
+
+        $('tbody>tr:odd').addClass('odd');
+		$('tbody>tr:even').addClass('even');
+        $('#search').click(function () {
+            var channelName = $('#channel-name').val();
+            var investDate = $('#invest-date').val();
+            if(channelName&&investDate) {
+                var ulr = 'https://www.bangronghui.com/thirdplatform/' + channelName + '/' + investDate;
+                console.log(ulr);
+                $.ajax({
+                    type:'GET',
+                    url:'api',
+                    dataType:"json",
+                    success:function (res) {
+                        if(res.data) {
+                            console.log(res.data);
+                            var encryptedData = res.data;
+                            //var messages = [{"REGISTDATE":"2016/12/03 15:38:15","TRANSDATE":"2017/01/23","PHONETEL":"13123456789","PROJECTNAME":"ZLL测试-2017010012","LOANTERM":"2月","AMOUNT":100,"LOANRATE":"11%"}];
+                            //console.log(messages[0]);
+                            //var message = messages[0];
+                            var decrypted_data = CryptoJS.AES.decrypt(encryptedData, key, {
+                                iv: key,
+                                mode: CryptoJS.mode.CBC,
+                                padding: CryptoJS.pad.Pkcs7
+                            });
+                            console.log(decrypted_data);
+                            var decryptedStr = decrypted_data.toString(CryptoJS.enc.Utf8);
+                            console.log(decryptedStr);
+                            /*var message ;
+                            console.log(message);
+                            $('#phone').html(message.PHONETEL);
+                            $('#register-date').html(message.REGISTDATE);
+                            $('#trans-date').html(message.TRANSDATE);
+                            $('#project-name').html(message.PROJECTNAME);
+                            $('#loan-term').html(message.LOANTERM) ;
+                            $('#loan-rate').html(message.LOANRATE);
+                            $('#amount').html(message.AMOUNT);
+                            $('#download').css('visibility','visible')
+                                .click(function () {
+                                    tableExport('table', 'download', 'xls')
+                                });*/
+                        }
+                    },
+                    error:function (res) {
+                        console.log('error')
+                    }
+                })
+            }else {
+                alert('请输入渠道码和待查投资日期')
+            }
+
+        });
+    })
+</script>
+</html>
